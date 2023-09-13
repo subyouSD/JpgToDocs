@@ -1,4 +1,4 @@
-from dd import *
+from ImageTextExtractor import *
 import docx
 from docx.shared import Pt
 
