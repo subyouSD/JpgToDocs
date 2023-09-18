@@ -122,7 +122,9 @@ class TextInImages:
 if __name__ == '__main__':
     start = time.time()
 
-    extractor = TextInImages("./test/rt_img.pdf", [2])
+    # extractor = TextInImages("./test/rt_img.pdf", [2])
+    extractor = TextInImages("C:/Users/SOL/Documents/sandBox/JpgToDocs/test/rt_img.pdf", [2])
+
     extractor.insert_text_to_word(extractor.image_extracted_data_list, extractor.pdf_url[:-4] + ".docx")
     # print(extractor.pdf_url)
     # for i in extractor.image_extracted_data_list:

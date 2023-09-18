@@ -5,7 +5,7 @@ from pdf2image import convert_from_path
 import pytesseract
 import time
 import TextInImages
-import numpy as np
+
 
 # 받는 값 image list 와 column num
 # parameters = image list
