@@ -6,7 +6,7 @@ import time
 from docx.shared import Cm, Pt, Inches
 from docx import Document
 from docx.enum.section import WD_SECTION_START
-from docx.oxml.ns import qn
+
 
 class PageInFile:
     # 아래 코드로 바꿔야 함
@@ -55,50 +55,46 @@ class PageInFile:
             # 일단은 다음줄 연결 없이 한 장씩 뽑기
             # new_section = doc.add_section(WD_SECTION_START.CONTINUOUS)
             # new_section.start_type
+            new_section = doc.add_section(WD_SECTION_START.CONTINUOUS)
+            new_section.start_type
 
             new_section = doc.add_section(WD_SECTION_START.CONTINUOUS)
             new_section.start_type
 
-            section = sections[1]
 
-            if page.column_num == 1:
-                section.top_margin = Cm(self.points_to_cm(page.top_y, page.height))
-                section.bottom_margin = Cm(self.points_to_cm(page.height - page.bottom_y, page.height))
-                section.left_margin = Cm(self.points_to_cm(page.left_x, page.height))
-                section.right_margin = Cm(self.points_to_cm(page.left_x, page.height))
-
-            elif page.column_num == 2:
-                # # Set to 2 column layout
-                sectPr = section._sectPr
-                cols = sectPr.xpath('./w:cols')[0]
-                cols.set(qn('w:num'), '2')
-
-                spacing_between_columns = self.points_to_cm(
-                    (page.second_column_left_x - page.first_column_right_x),page.height) * 567
-
-                cols.set(qn('w:space'),
-                         str(spacing_between_columns))
-
-                section.top_margin = Cm(self.points_to_cm(page.top_y, page.height))
-                section.bottom_margin = Cm(self.points_to_cm(page.height - page.bottom_y, page.height))
-                section.left_margin = Cm(self.points_to_cm(page.first_column_left_x, page.height))
-                section.right_margin = Cm(self.points_to_cm(page.first_column_left_x, page.height))
-
-
-            for par in page.line_formatted_data:
+            for idx, par in enumerate(page.line_formatted_data):
+                new_section = doc.add_section(WD_SECTION_START.CONTINUOUS)
+                new_section.start_type
                 if isinstance(par, dict):
+                    left = Pt(par['min_x'])
+                    top = Pt(par['min_y'])
+                    width = Pt(par['width'])
+                    height = Pt(par['height'])
+
+
+                    # shape = doc.add_shape(1, left, top, width, height)
+                    # text_frame = textbox.text_frame
+                    # shape.fill.solid()
+                    # shape.fill.fore_color.rgb = (255,0,0)
+                    # shape.line.width = Pt(2)
+                    # shape.line.color.rgb = (0,0,0)
+
+
+
                     if par['text'].startswith('e '):
-                        p = doc.add_paragraph(par['text'][2:-2], style='List Bullet')
+                        p = doc.add_run(par['text'][2:-2], style='List Bullet')
                     else:
-                        p = doc.add_paragraph(par['text'][:-2])
-                    spacing_after = Pt(0)  # Adjust this value as needed
-                    p.space_after = spacing_after
+                        p = doc.add_run(par['text'][:-2])
+                    p.font.size = Pt(12)
+
+                    # spacing_after = Pt(0)  # Adjust this value as needed
+                    # p.space_after = spacing_after
 
                     # 아래 alignment 코드는 google docs에서만 작동함.
                     # p.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
-                    style = doc.styles['Normal']
-                    font = style.font
-                    font.size = Pt(10)
+                    # style = doc.styles['Normal']
+                    # font = style.font
+                    # font.size = Pt(10)
 
         doc.save(output_filename)
 
@@ -106,8 +102,8 @@ class PageInFile:
 if __name__ == '__main__':
     start = time.time()
 
-    # extractor = TextInImages("./test/rt_img.pdf", [2])
-    extractor = PageInFile("C:/Users/SOL/Documents/sandBox/JpgToDocs/test/rt_img.pdf", [2])
+    extractor = PageInFile("./test/rt_img.pdf", [2])
+    # extractor = PageInFile("C:/Users/SOL/Documents/sandBox/JpgToDocs/test/rt_img.pdf", [2])
 
     extractor.insert_text_to_word(extractor.image_extracted_data_list, extractor.pdf_url[:-4] + ".docx")
     end = time.time()

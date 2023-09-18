@@ -73,22 +73,36 @@ class FormattedText:
     def data_to_text_json_1(self, words, height):
         spacing, max_height = self.calculate_spacing_height(words)
 
-        formatted_text = ""
+
 
         # set the left and right margin
-        self.right_x = max([(word['x'] + word['width']) for word in words])
-        self.left_x = min([word['x'] for word in words])
-
-        # set the top and the top /bottom margin with the minimum y value
-        self.top_y = min([word['y'] for word in words])
-        self.bottom_y = self.height - self.top_y
+        right_x = max([(word['x'] + word['width']) for word in words])
+        # self.left_x = min([word['x'] for word in words])
+        #
+        # # set the top and the top /bottom margin with the minimum y value
+        # self.top_y = min([word['y'] for word in words])
+        # self.bottom_y = self.height - self.top_y
 
         # 한 줄씩 나누기 위한 parameters
         line_formatted = []
-        first_x = words[0]['x']
-        first_y = words[0]['y']
+        formatted_text = ""
+
+        min_x = words[0]['x']
+        max_x = words[0]['x']
+
+        min_y = words[0]['y']
+        max_y = words[0]['y']
 
         for idx, word in enumerate(words[:-1]):
+            if word['x'] < min_x:
+                min_x = word['x']
+            if word['x'] > max_x:
+                max_x = word['x']
+            if word['y'] < min_y:
+                min_y = word['y']
+            if word['y'] > max_y:
+                max_y = word['y']
+
             if (word['text'][-1] != '-') & (word['text'][-1] == '-'):
                 word['text'] = word['text'][:-1]
             next_word = words[idx + 1]
@@ -102,7 +116,7 @@ class FormattedText:
             # 블락이 같고 paragraph 도 같은데, 라인이 다르면 뒤에 다음 단어 width 이상 남으면 개행
             elif (word['block_num'] == next_word['block_num']) & (word['par_num'] == next_word['par_num']) \
                     & (word['line_num'] != next_word['line_num']) & \
-                    (self.right_x - word['x'] - word['width'] > next_word['width']):
+                    (right_x - word['x'] - word['width'] > next_word['width']):
                 pass
 
             # 라인이 다른데 다음 줄이 알파벳 으로 시작 하지 않으면 개행
@@ -119,18 +133,24 @@ class FormattedText:
                 if gap <= max_height:
                     line_formatted.append({
                         'text': formatted_text,
-                        'x': first_x,
-                        'y': first_y,
+                        'min_x': min_x,
+                        'min_y': min_y,
+                        'width': max_x - min_x,
+                        'height': max_y - min_y,
                     })
-                    first_word_x = next_word['x']
-                    first_word_y = next_word['y']
+                    min_x = next_word['x']
+                    min_y = next_word['y']
+                    max_x = next_word['x']
+                    max_y = next_word['y']
                     formatted_text = ''
 
         formatted_text += words[-1]['text']
         line_formatted.append({
             'text': formatted_text,
-            'x': first_x,
-            'y': first_y,
+            'min_x': min_x,
+            'min_y': min_y,
+            'width': max_x - min_x,
+            'height': max_y - min_y,
         })
 
         return line_formatted
@@ -138,28 +158,61 @@ class FormattedText:
     def data_to_text_json_2(self, words, width, height):
         spacing, avg_height = self.calculate_spacing_height(words)
 
-        formatted_text = ""
 
-        # 가상의 중간 선 보다 작은 것 중 max 는 1단의 right, 중간 선 보다 큰 것 중 max는 2단의 right
-        middle_line_x = width / 2
-
-        self.first_column_left_x = min([word['x'] for word in words])
-        self.first_column_right_x = max(
-            [(word['x'] + word['width']) for word in words if (word['x'] + word['width']) < middle_line_x])
-
-        self.second_column_left_x = min(
-            [(word['x'] + word['width']) for word in words if (word['x'] + word['width']) > middle_line_x])
-        self.second_column_right_x = max([(word['x'] + word['width']) for word in words])
-
-        self.top_y = min([word['y'] for word in words])
-        self.bottom_y = height - self.top_y
+        # set the left and right margin
+        right_x = max([(word['x'] + word['width']) for word in words])
+        # self.left_x = min([word['x'] for word in words])
+        #
+        # # set the top and the top /bottom margin with the minimum y value
+        # self.top_y = min([word['y'] for word in words])
+        # self.bottom_y = self.height - self.top_y
 
         # 한 줄씩 나누기 위한 parameters
         line_formatted = []
-        first_word_x = words[0]['x']
-        first_word_y = words[0]['y']
+        formatted_text = ""
+
+        min_x = words[0]['x']
+        max_x = words[0]['x']
+
+        min_y = words[0]['y']
+        max_y = words[0]['y']
+
+
+
+        # formatted_text = ""
+        #
+        # # 가상의 중간 선 보다 작은 것 중 max 는 1단의 right, 중간 선 보다 큰 것 중 max는 2단의 right
+        middle_line_x = width / 2
+        #
+        # # self.first_column_left_x = min([word['x'] for word in words])
+        self.first_column_right_x = max(
+            [(word['x'] + word['width']) for word in words if (word['x'] + word['width']) < middle_line_x])
+        # #
+        # # self.second_column_left_x = min(
+        # #     [(word['x'] + word['width']) for word in words if (word['x'] + word['width']) > middle_line_x])
+        self.second_column_right_x = max([(word['x'] + word['width']) for word in words])
+        # #
+        # # self.top_y = min([word['y'] for word in words])
+        # # self.bottom_y = height - self.top_y
+        #
+        # # 한 줄씩 나누기 위한 parameters
+        # line_formatted = []
+        # first_word_x = words[0]['x']
+        # first_word_y = words[0]['y']
+        #
+        # for idx, word in enumerate(words[:-1]):
 
         for idx, word in enumerate(words[:-1]):
+            if word['x'] < min_x:
+                min_x = word['x']
+            if word['x'] > max_x:
+                max_x = word['x']
+            if word['y'] < min_y:
+                min_y = word['y']
+            if word['y'] > max_y:
+                max_y = word['y']
+
+
             if (word['text'][-1] != '-') & (word['text'][-1] == '-'):
                 word['text'] = word['text'][:-1]
             next_word = words[idx + 1]
@@ -192,8 +245,8 @@ class FormattedText:
             # the gap between the current word and the next word but if the current word is the last word on the
             # first column, the gap will be from the word to the bottom + top to the next word
             gap = next_word['y'] - word['y']
-            if word['y'] > next_word['y'] | ((word['x'] < middle_line_x) & (next_word['x'] > middle_line_x)):
-                gap = self.bottom_y - word['y'] + next_word['y'] - self.top_y - spacing
+            # if word['y'] > next_word['y'] | ((word['x'] < middle_line_x) & (next_word['x'] > middle_line_x)):
+            #     gap = self.bottom_y - word['y'] + next_word['y'] - self.top_y - spacing
 
             # add \n until the gap gets less than average height of words
             while gap > avg_height:
@@ -202,20 +255,25 @@ class FormattedText:
                 if gap <= avg_height:
                     line_formatted.append({
                         'text': formatted_text,
-                        'x': first_word_x,
-                        'y': first_word_y,
-
+                        'min_x': min_x,
+                        'min_y': min_y,
+                        'width': max_x - min_x,
+                        'height': max_y - min_y,
                     })
-                    first_word_x = next_word['x']
-                    first_word_y = next_word['y']
+                    min_x = next_word['x']
+                    min_y = next_word['y']
+                    max_x = next_word['x']
+                    max_y = next_word['y']
                     formatted_text = ''
 
         # 마지막 단어 추가
         formatted_text += words[-1]['text']
         line_formatted.append({
             'text': formatted_text,
-            'x': first_word_x,
-            'y': first_word_y,
+            'min_x': min_x,
+            'min_y': min_y,
+            'width': max_x - min_x,
+            'height': max_y - min_y,
         })
 
         return line_formatted
