@@ -43,28 +43,35 @@ class TextInImages:
         return image_list
 
     def points_to_cm(self, points, height):
-        return Cm(points / height * 29.7)
+        return height/points
 
         # 불러올 때, self.insert_text_to_word(image_list, self.pdf_url[:-4]+".docx")
     def insert_text_to_word(self, image_list, output_filename):
         # Create a new Word document
         doc = Document()
         sections = doc.sections
+        section = sections[0]
+        print((image_list[0].width/100))
+        section.page_width = Cm(image_list[0].width/100)
+        print((image_list[0].height/100))
+        section.page_height = Cm(image_list[0].height/100)
+
         for idx, page in enumerate(image_list):
             # 일단은 다음줄 연결 없이 한 장씩 뽑기
-            # new_section = doc.add_section(WD_SECTION_START.CONTINUOUS)
-            # new_section.start_type
+            new_section = doc.add_section(WD_SECTION_START.CONTINUOUS)
+            new_section.start_type
 
             new_section = doc.add_section(WD_SECTION_START.CONTINUOUS)
             new_section.start_type
 
-            section = sections[1]
+            section = sections[2]
 
             if page.column_num == 1:
-                section.top_margin = Cm(self.points_to_cm(page.top_y, page.height))
-                section.bottom_margin = Cm(self.points_to_cm(page.height - page.bottom_y, page.height))
-                section.left_margin = Cm(self.points_to_cm(page.left_x, page.height))
-                section.right_margin = Cm(self.points_to_cm(page.left_x, page.height))
+                for section in sections:
+                    section.top_margin = Cm(self.points_to_cm(page.top_y, page.height))
+                    section.bottom_margin = Cm(self.points_to_cm(page.height - page.bottom_y, page.height))
+                    section.left_margin = Cm(self.points_to_cm(page.left_x, page.height))
+                    section.right_margin = Cm(self.points_to_cm(page.left_x, page.height))
 
             elif page.column_num == 2:
                 # # Set to 2 column layout
@@ -74,15 +81,24 @@ class TextInImages:
 
                 spacing_between_columns = self.points_to_cm(
                     (page.second_column_left_x - page.first_column_right_x), page.height) * 567
-
+                print(str(page.second_column_left_x) + "second column left x")
+                print(str(page.first_column_right_x) + "first column right x")
+                print(f"first column left x {page.first_column_left_x}")
+                print(f"second column right x {page.second_column_right_x}")
+                print(str(page.top_y) + "topy")
+                print(str(page.bottom_y) + "bottomy")
+                print(f"page width {page.width}")
                 cols.set(qn('w:space'),
                          str(spacing_between_columns))
-
-                section.top_margin = Cm(self.points_to_cm(page.top_y, page.height))
-                section.bottom_margin = Cm(self.points_to_cm(page.height - page.bottom_y, page.height))
-                section.left_margin = Cm(self.points_to_cm(page.first_column_left_x, page.height))
-                section.right_margin = Cm(self.points_to_cm(page.first_column_left_x, page.height))
-
+                # for section in sections:
+                sections[2].top_margin = Cm(page.top_y/100)
+                print("top margin" + str(page.top_y/100))
+                sections[2].bottom_margin = Cm((page.height - page.bottom_y)/100)
+                print((page.height - page.bottom_y)/100)
+                # section.top_margin = Cm(0)
+                # section.bottom_margin = Cm(0)
+                sections[2].left_margin = Cm(page.first_column_left_x/100)
+                # sections[2].right_margin = Cm((page.width-page.second_column_right_x)/100)
 
             for par in page.line_formatted_data:
                 if isinstance(par, dict):
@@ -90,9 +106,10 @@ class TextInImages:
                         p = doc.add_paragraph(par['text'][2:], style='List Bullet')
                     else:
                         p = doc.add_paragraph(par['text'])
-                    spacing_after = Pt(10)  # Adjust this value as needed
-                    p.space_after = spacing_after
-                    p.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+                    # spacing_after = Pt(10)  # Adjust this value as needed
+                    # p.space_after = spacing_after
+
+                    # p.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
                     style = doc.styles['Normal']
                     font = style.font
                     font.size = Pt(10)
@@ -103,8 +120,10 @@ class TextInImages:
 if __name__ == '__main__':
     start = time.time()
 
-    # extractor = TextInImages("./test/rt_img.pdf", [2])
-    extractor = TextInImages("C:/Users/SOL/Documents/sandBox/JpgToDocs/test/rt_img.pdf", [2])
+    extractor = TextInImages("../test/rt_img.pdf", [2])
+    for i in extractor.image_extracted_data_list:
+        print(i.line_formatted_data)
+    # extractor = TextInImages("C:/Users/SOL/Documents/sandBox/JpgToDocs/test/rt_img.pdf", [2])
 
     extractor.insert_text_to_word(extractor.image_extracted_data_list, extractor.pdf_url[:-4] + ".docx")
     end = time.time()

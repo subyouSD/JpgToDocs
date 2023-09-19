@@ -116,7 +116,7 @@ class LineFormattedData:
             else:
                 continue
 
-            gap = next_word['y'] - word['y']
+            gap = next_word['y'] - word['y'] - spacing
 
             while gap > max_height:
                 formatted_text += '\n'
@@ -157,24 +157,32 @@ class LineFormattedData:
         self.second_column_right_x = max([(word['x'] + word['width']) for word in words])
 
         self.top_y = min([word['y'] for word in words])
-        self.bottom_y = height - self.top_y
+        self.bottom_y = max([word['y'] for word in words]) + spacing
 
         # 한 줄씩 나누기 위한 parameters
         line_formatted = []
         first_word_x = words[0]['x']
         first_word_y = words[0]['y']
-
+        line_formatted.append({'text': '\n' * int((first_word_y-self.top_y)//spacing),
+                        'x': 0,
+                        'y': 0,})
+        first_right_word = True
         for idx, word in enumerate(words[:-1]):
-            if (word['text'][-1] != '-') & (word['text'][-1] == '-'):
+            if word['text'] == 'Research':
+                print(word['x'], word['y'], word['width'], word['height'], height)
+            if (word['text'] != '-') & (word['text'][-1] == '-'):
                 word['text'] = word['text'][:-1]
             next_word = words[idx + 1]
             formatted_text += word['text'] + ' '  # 띄움이 확인 불가, spacing 1개로 가정
-
             # 페이지 중간의 값 보다 작으면 2단 페이지 에서 왼편, 크면 오른 편의 맥스 기준을 지정
             if word['x'] < middle_line_x:
                 criteria = self.first_column_right_x
             else:
                 criteria = self.second_column_right_x
+                if first_right_word == True:
+                    first_right_word = False
+                    next_line_num = '\n' * int((word['y']-self.top_y) // spacing)
+                    formatted_text = next_line_num + formatted_text
 
             # 블락이 다를 때 또는 같은데 paragraph 가 다를 경우 개행
             if (word['block_num'] != next_word['block_num']) \
@@ -196,24 +204,25 @@ class LineFormattedData:
 
             # the gap between the current word and the next word but if the current word is the last word on the
             # first column, the gap will be from the word to the bottom + top to the next word
-            gap = next_word['y'] - word['y']
+            gap = next_word['y'] - word['y'] - spacing
             if word['y'] > next_word['y'] | ((word['x'] < middle_line_x) & (next_word['x'] > middle_line_x)):
+                # gap = self.bottom_y - word['y'] + next_word['y'] - spacing
                 gap = self.bottom_y - word['y'] + next_word['y'] - self.top_y - spacing
 
             # add \n until the gap gets less than average height of words
             while gap > avg_height:
                 formatted_text += '\n'
                 gap -= spacing
-                if gap <= avg_height:
-                    line_formatted.append({
-                        'text': formatted_text,
-                        'x': first_word_x,
-                        'y': first_word_y,
+            if gap <= avg_height:
+                line_formatted.append({
+                    'text': formatted_text,
+                    'x': first_word_x,
+                    'y': first_word_y,
 
-                    })
-                    first_word_x = next_word['x']
-                    first_word_y = next_word['y']
-                    formatted_text = ''
+                })
+                first_word_x = next_word['x']
+                first_word_y = next_word['y']
+                formatted_text = ''
 
         # 마지막 단어 추가
         formatted_text += words[-1]['text']
