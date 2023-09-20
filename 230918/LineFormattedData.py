@@ -20,12 +20,6 @@ class LineFormattedData:
         extracted_data = self.extract_data_from_image(image, 10)
 
         self.width, self.height = image.size
-        # for i in range(len(extracted_data)//4):
-        #     print(extracted_data[i*4])
-        #     print(extracted_data[i*4+1])
-        #     print(extracted_data[i*4+2])
-        #     print(extracted_data[i*4+3])
-        # print(extracted_data)
 
         if self.column_num == 1:
             line_formatted = self.data_to_text_json_1(extracted_data, self.height)
@@ -80,11 +74,9 @@ class LineFormattedData:
 
         formatted_text = ""
 
-        # set the left and right margin
-        self.right_x = max([(word['x'] + word['width']) for word in words])
         self.left_x = min([word['x'] for word in words])
+        self.right_x = max([(word['x'] + word['width']) for word in words])
 
-        # set the top and the top /bottom margin with the minimum y value
         self.top_y = min([word['y'] for word in words])
         self.bottom_y = self.height - self.top_y
 
@@ -94,10 +86,10 @@ class LineFormattedData:
         first_y = words[0]['y']
 
         for idx, word in enumerate(words[:-1]):
-            if (word['text'][-1] != '-') & (word['text'][-1] == '-'):
+            if (word['text'] != '-') & (word['text'][-1] == '-'):
                 word['text'] = word['text'][:-1]
             next_word = words[idx + 1]
-            formatted_text += word['text'] + ' '  # 띄움이 확인 불가, spacing 1개로 가정
+            formatted_text += word['text'] + ' '
 
             # 블락이 다를 때 또는 같은데 paragraph 가 다를 경우 개행
             if (word['block_num'] != next_word['block_num']) \
@@ -121,15 +113,15 @@ class LineFormattedData:
             while gap > max_height:
                 formatted_text += '\n'
                 gap -= spacing
-                if gap <= max_height:
-                    line_formatted.append({
-                        'text': formatted_text,
-                        'x': first_x,
-                        'y': first_y,
-                    })
-                    first_word_x = next_word['x']
-                    first_word_y = next_word['y']
-                    formatted_text = ''
+            if gap <= max_height:
+                line_formatted.append({
+                    'text': formatted_text,
+                    'x': first_x,
+                    'y': first_y,
+                })
+                first_word_x = next_word['x']
+                first_word_y = next_word['y']
+                formatted_text = ''
 
         formatted_text += words[-1]['text']
         line_formatted.append({
@@ -168,8 +160,6 @@ class LineFormattedData:
                         'y': 0,})
         first_right_word = True
         for idx, word in enumerate(words[:-1]):
-            if word['text'] == 'Research':
-                print(word['x'], word['y'], word['width'], word['height'], height)
             if (word['text'] != '-') & (word['text'][-1] == '-'):
                 word['text'] = word['text'][:-1]
             next_word = words[idx + 1]

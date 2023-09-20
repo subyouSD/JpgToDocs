@@ -1,9 +1,6 @@
-import LineFormattedData
-from pdf2image import convert_from_path
-import time
-from docx.shared import Cm, Pt, Inches
+
+from docx.shared import Cm, Pt, Inches, Mm
 from docx import Document
-from docx.enum.section import WD_SECTION_START
 from docx.oxml.ns import qn
 
 
@@ -20,40 +17,44 @@ line_formatted_data = [{'text': '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n', 'x': 0, 'y':
 
 
 def insert_text_to_word(line_formatted_data, output_filename):
-    # Create a new Word document
+    # 페이지 사이즈 비율에 따라, A4용지 또는 US Letter 용지를 선택
+
+
+
+
     doc = Document()
     sections = doc.sections
-    print(len(sections))
-    section = sections[0]
-    print(len(sections))
 
     section = sections[0]
+    if round(2339 / 1653, 1) == 1.4:
+        section.page_width = Mm(210)
+        section.page_height = Mm(297)
+    if round(2339 / 1653, 1) == 1.3:
+        section.page_width = Inches(8.5)
+        section.page_height = Inches(11)
+
     sectPr = section._sectPr
     cols = sectPr.xpath('./w:cols')[0]
     cols.set(qn('w:num'), '2')
     spacing_between_columns = (54/2339)*29.7*567
     cols.set(qn('w:space'),str(spacing_between_columns))
 
-
-
     section.top_margin = Cm((232*29.7/2339)-1.27)
     section.bottom_margin = Cm(((2339-2074.12)*29.7/2339)-1.27)
 
     section.left_margin = Cm(142 * 21/1653)
     section.right_margin = Cm((1653-1512)*21/1653)
-    p = doc.add_paragraph()
+
     for par in line_formatted_data:
         if isinstance(par, dict):
-
             if par['text'].startswith('e '):
-                p.add_run(par['text'][2:], style='List Bullet')
+                doc.add_paragraph(par['text'][2:], style='List Bullet')
             else:
-                p.add_run(par['text'])
+                doc.add_paragraph(par['text'])
             style = doc.styles['Normal']
             font = style.font
             font.size = Pt(9.5)
-    #
-    doc.save(output_filename)
 
+    doc.save(output_filename)
 
 insert_text_to_word(line_formatted_data, "test.docx")
