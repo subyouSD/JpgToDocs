@@ -39,15 +39,10 @@ class TextInImages:
             text_in_image = LineFormattedData.LineFormattedData(image, column_num[idx])
             image_list.append(text_in_image)
 
-        # 여기서 list를 check_connecting_line에 넣어주면 될듯
-        # 받아오는 값을 image_extracted_data_list에 넣어주면 될듯
-
         return image_list
 
     def points_to_cm(self, length, height):
         return length * self.section_height / height
-
-        # 불러올 때, self.insert_text_to_word(image_list, self.pdf_url[:-4]+".docx")
 
     def insert_text_to_word(self, image_list, output_filename):
         # Create a new Word document
@@ -56,6 +51,7 @@ class TextInImages:
         section = sections[0]
 
         for idx, page in enumerate(image_list):
+            print(page.height, page.width)
             if round((page.height / page.width), 1) == 1.4:
                 section.page_width = Mm(210)
                 section.page_height = Mm(297)

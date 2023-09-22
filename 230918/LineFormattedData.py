@@ -137,7 +137,6 @@ class LineFormattedData:
 
         formatted_text = ""
 
-        # 가상의 중간 선 보다 작은 것 중 max 는 1단의 right, 중간 선 보다 큰 것 중 max는 2단의 right
         middle_line_x = width / 2
 
         self.first_column_left_x = min([word['x'] for word in words])
@@ -163,8 +162,8 @@ class LineFormattedData:
             if (word['text'] != '-') & (word['text'][-1] == '-'):
                 word['text'] = word['text'][:-1]
             next_word = words[idx + 1]
-            formatted_text += word['text'] + ' '  # 띄움이 확인 불가, spacing 1개로 가정
-            # 페이지 중간의 값 보다 작으면 2단 페이지 에서 왼편, 크면 오른 편의 맥스 기준을 지정
+            formatted_text += word['text'] + ' '
+
             if word['x'] < middle_line_x:
                 criteria = self.first_column_right_x
             else:
@@ -192,14 +191,10 @@ class LineFormattedData:
             else:
                 continue
 
-            # the gap between the current word and the next word but if the current word is the last word on the
-            # first column, the gap will be from the word to the bottom + top to the next word
             gap = next_word['y'] - word['y'] - spacing
             if word['y'] > next_word['y'] | ((word['x'] < middle_line_x) & (next_word['x'] > middle_line_x)):
-                # gap = self.bottom_y - word['y'] + next_word['y'] - spacing
                 gap = self.bottom_y - word['y'] + next_word['y'] - self.top_y - spacing
 
-            # add \n until the gap gets less than average height of words
             while gap > avg_height:
                 formatted_text += '\n'
                 gap -= spacing
